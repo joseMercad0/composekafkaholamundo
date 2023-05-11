@@ -1,0 +1,22 @@
+version: '3'
+services:
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: localhost
+      KAFKA_CREATE_TOPICS: "test:1:1"
+  hola-mundo:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/secrets/kafka_client_jaas.conf"
+    volumes:
+      - ./secrets:/etc/kafka/secrets
+    command: ["/bin/bash", "-c", "echo 'Hola mundo' | kafka-console-producer --broker-list localhost:9092 --topic test && kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning"]
